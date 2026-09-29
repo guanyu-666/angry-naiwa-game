@@ -141,13 +141,25 @@ const FEIDUDU_TEX = ["feidudu_idle", "feidudu_sit", "feidudu_arms", "feidudu_mas
 class BootScene extends Phaser.Scene {
   constructor() { super("Boot"); }
   preload() {
-    ASSETS.forEach((k) => this.load.image(k, `assets/${k}.png`));
+    // bg 已转 jpg 省体积；其余仍是 png
+    ASSETS.forEach((k) => {
+      if (k === "bg") this.load.image("bg", "assets/bg.jpg");
+      else this.load.image(k, `assets/${k}.png`);
+    });
+    // 加载页：进度条上方显示"游戏正在加载中"，下方显示百分比
+    this.add.text(W / 2, H / 2 - 64, "游戏正在加载中…", {
+      fontFamily: "sans-serif", fontSize: "36px", color: "#eafff2", fontStyle: "bold",
+    }).setOrigin(0.5).setShadow(2, 2, "#1b3a28", 4);
+    const pct = this.add.text(W / 2, H / 2 + 36, "0%", {
+      fontFamily: "sans-serif", fontSize: "26px", color: "#cfeee0",
+    }).setOrigin(0.5);
     const bar = this.add.graphics();
     this.load.on("progress", (v) => {
       bar.clear();
-      bar.fillStyle(0x7fc8a9, 1).fillRect(W / 2 - 160, H / 2, 320 * v, 16);
+      bar.fillStyle(0x7fc8a9, 1).fillRoundedRect(W / 2 - 160, H / 2 - 8, 320 * v, 16, 8);
+      pct.setText(Math.round(v * 100) + "%");
     });
-    this.load.on("complete", () => bar.destroy());
+    this.load.on("complete", () => { bar.destroy(); pct.destroy(); });
   }
   create() { this.scene.start("Menu"); }
 }
